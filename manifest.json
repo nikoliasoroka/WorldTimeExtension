@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "World Time",
-  "version": "1.0.0",
-  "description": "Track multiple world timezones at a glance",
+  "name": "TimeZones – World Clock",
+  "version": "1.0.1",
+  "description": "World clock for multiple time zones. Track city times worldwide with dark mode, 11 languages, and Chrome sync.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "World Time"
+    "default_title": "TimeZones – World Clock"
   },
   "permissions": ["storage"],
   "icons": {
