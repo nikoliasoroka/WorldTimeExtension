@@ -11,6 +11,7 @@ let langPickerOpen = false;
 let is24Hour       = false;
 let isDark         = true;
 let lang           = 'en';
+let isCelsius      = true;
 
 // ── DOM ────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -29,6 +30,8 @@ const btnLang      = $('btnLang');
 const langPicker   = $('langPicker');
 const langGrid     = $('langGrid');
 const langFlag     = $('langFlag');
+const unitToggle   = $('unitToggle');
+const unitLabel    = $('unitLabel');
 const htmlEl       = document.documentElement;
 
 // ── Storage ────────────────────────────────────────────
@@ -36,11 +39,12 @@ const useChrome = () => typeof chrome !== 'undefined' && chrome.storage;
 
 function loadAll(cb) {
   if (useChrome()) {
-    chrome.storage.sync.get(['worldTimeZones','is24Hour','isDark','lang'], res => {
+    chrome.storage.sync.get(['worldTimeZones','is24Hour','isDark','lang','isCelsius'], res => {
       savedZones = res.worldTimeZones || DEFAULT_ZONES;
       is24Hour   = res.is24Hour ?? false;
       isDark     = res.isDark   ?? true;
       lang       = res.lang     || 'en';
+      isCelsius  = res.isCelsius ?? true;
       cb();
     });
   } else {
@@ -49,6 +53,7 @@ function loadAll(cb) {
     is24Hour   = localStorage.getItem('is24Hour') === 'true';
     isDark     = localStorage.getItem('isDark') !== 'false';
     lang       = localStorage.getItem('lang') || 'en';
+    isCelsius  = localStorage.getItem('isCelsius') !== 'false';
     cb();
   }
 }
@@ -182,9 +187,17 @@ function buildClockList() {
         <div class="clock-city">${displayName}</div>
         <div class="clock-date">${dateStr}</div>
       </div>
+      <div class="weather-badge" data-label="${tzEntry ? tzEntry.label : z.label}">
+        <span class="wx-icon"></span>
+        <span class="wx-temp"></span>
+      </div>
       <div class="clock-time">${fmtTime(timeStr)}</div>
       <button class="btn-remove" title="${t('removeTitle')}" data-i="${i}">✕</button>`;
     clockList.appendChild(div);
+    if (tzEntry?.lat != null) {
+      const badge = div.querySelector('.weather-badge');
+      getWeather(tzEntry).then(data => { if (data) updateWeatherBadge(badge, data); });
+    }
   });
   clockList.querySelectorAll('.btn-remove').forEach(btn => {
     btn.addEventListener('click', e => {
@@ -202,6 +215,30 @@ function updateLocalTime() {
     is24Hour ? 'en-GB' : 'en-US', { hour12: !is24Hour });
   utcOffsetEl.textContent = getUTCOffset();
 }
+
+// ── Weather helpers ────────────────────────────────────
+function formatTemp(c) {
+  return isCelsius ? Math.round(c) + '°' : Math.round(c * 9/5 + 32) + '°';
+}
+
+function updateWeatherBadge(badge, data) {
+  badge.querySelector('.wx-icon').textContent = WMO_EMOJI[data.code] ?? '🌡️';
+  badge.querySelector('.wx-temp').textContent = formatTemp(data.temp);
+}
+
+function refreshAllWeatherBadges() {
+  clockList.querySelectorAll('.weather-badge').forEach(badge => {
+    const cached = wxReadCache(badge.dataset.label);
+    if (cached) updateWeatherBadge(badge, cached);
+  });
+}
+
+unitToggle.addEventListener('change', () => {
+  isCelsius = !unitToggle.checked;
+  unitLabel.textContent = isCelsius ? '°C' : '°F';
+  persist({ isCelsius });
+  refreshAllWeatherBadges();
+});
 
 // ── Format toggle ──────────────────────────────────────
 formatToggle.addEventListener('change', () => {
@@ -278,6 +315,8 @@ function animateHand() {
 loadAll(() => {
   applyTheme();
   formatToggle.checked = is24Hour;
+  unitToggle.checked   = !isCelsius;
+  unitLabel.textContent = isCelsius ? '°C' : '°F';
   applyTranslations();
   updateLocalTime();
   animateHand();

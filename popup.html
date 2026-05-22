@@ -238,6 +238,16 @@
     }
     .btn-remove:hover { background:rgba(240,96,112,0.12); }
 
+    /* ── WEATHER BADGE ── */
+    .weather-badge { display:flex; align-items:center; gap:3px; flex-shrink:0; min-width:44px; justify-content:flex-end; }
+    .wx-icon  { font-size:14px; line-height:1; }
+    .wx-temp  { font-family:var(--mono); font-size:11px; color:var(--muted); }
+
+    /* ── UNIT TOGGLE ── */
+    .unit-toggle-wrap { display:flex; align-items:center; gap:4px; cursor:pointer; user-select:none; }
+    #unitToggle { display:none; }
+    .unit-label { font-family:var(--mono); font-size:10px; color:var(--muted); transition:color 0.2s; }
+
     /* ── EMPTY STATE ── */
     .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:42px 20px; gap:8px; text-align:center; color:var(--muted); }
     .empty-icon  { font-size:32px; opacity:0.4; }
@@ -323,11 +333,16 @@
       <div class="toggle-pill"></div>
       <span class="toggle-label" id="toggleLabel">AM/PM</span>
     </label>
+    <label class="unit-toggle-wrap" title="Toggle temperature unit">
+      <input type="checkbox" id="unitToggle"/>
+      <span class="unit-label" id="unitLabel">°C</span>
+    </label>
     <div class="utc-offset" id="utcOffset"></div>
   </div>
 
   <script src="timezones.js"></script>
   <script src="i18n.js"></script>
+  <script src="weather.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
